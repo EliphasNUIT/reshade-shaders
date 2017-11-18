@@ -124,6 +124,9 @@ sampler sLastFocus { Texture=tLastFocus; };
 //interpret the focus textures and separate far/near focuses
 float getFocus(float2 coord, bool farOrNear) {
 	float depth = ReShade::GetLinearizedDepth(coord);
+	if (depth > 1.0 - 1e-6) {
+		return 0.0;
+	}
 	
 	depth -= bLightDoF_AutoFocus ? tex2D(sFocus, 0).x : fLightDoF_ManualFocus;
 	

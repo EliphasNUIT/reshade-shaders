@@ -354,6 +354,9 @@ uniform float2 MouseCoords < source = "mousepoint"; >;
 float GetCoC(float2 coords)
 {
 	float scenedepth = ReShade::GetLinearizedDepth(coords);
+	if (scenedepth > 1.0 - 1e-6) {
+		return 0.0;
+	}
 	float scenefocus, scenecoc = 0.0;
 
 	if (DOF_AUTOFOCUS)
