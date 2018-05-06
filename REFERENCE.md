@@ -133,6 +133,7 @@ Annotations to customize UI appearance:
  * ui_items - A list of items for the combo box, each item is terminated with a `\0` character (required when `ui_type = "combo"`)
  * ui_label - Display name of the variable in the UI. If this is missing, the variable name is used instead.
  * ui_tooltip - Text that is displayed when the user hovers over the variable in the UI. Use this for a description.
+ * ui_category - Groups values together under a common headline. Note that all variables in the same category also have to be declared next to each other for this to be displayed correctly.
 
 Annotations are also used to request special runtime values:
 
@@ -156,6 +157,8 @@ Annotations are also used to request special runtime values:
  True if specified mouse button (0 - 4) is pressed and false otherwise. If toggle is true the value stays true until the key is pressed a second time.
  * ``uniform float2 mousepoint < source = "mousepoint"; >;``  
  Gets the position of the mouse cursor in screen coordinates.
+ * ``uniform float2 mousedelta < source = "mousedelta"; >;``  
+ Gets the movement of the mouse cursor in screen coordinates.
 
 ```c++
 // Initializers are used for the initial value when providied.
@@ -214,7 +217,11 @@ Intrinsics:
 In addition to these standard intrinsics, ReShade FX comes with a few additional ones:
 
  * ``float4 tex2Dfetch(sampler2D s, int4 coords)``  
- Fetches a value from the texture directly without any sampling.
+ Fetches a value from the texture directly without any sampling.\
+   coords.x : [0, texture width)\
+   coords.y : [0, texture height)\
+   coords.z : ignored\
+   coords.w : [0, texture mip levels)
  * ``float4 tex2Dgather(sampler2D s, float2 coords, int comp)``  
  Gathers the specified component of the four neighboring pixels and returns the result.
  * ``float4 tex2Dgatheroffset(sampler2D s, float2 coords, int2 offset, int comp)``
@@ -332,6 +339,7 @@ technique Example < enabled = true; >
 		SRGBWriteEnable = false;
 
 		// Enable or disable color and alpha blending.
+		// Don't forget to also set "ClearRenderTargets" to "false" if you want to blend with existing data in a render target.
 		BlendEnable = false;
 
 		// The operator used for color and alpha blending.
@@ -346,7 +354,9 @@ technique Example < enabled = true; >
 		//   SRCCOLOR, SRCALPHA, INVSRCCOLOR, INVSRCALPHA
 		//   DESTCOLOR, DESTALPHA, INVDESTCOLOR, INVDESTALPHA
 		SrcBlend = ONE;
+		SrcBlendAlpha = ONE;
 		DestBlend = ZERO;
+		DestBlendAlpha = ZERO;
 		
 		// Enable or disable the stencil test.
 		// The depth and stencil buffers are cleared before rendering each pass in a technique.
