@@ -22,18 +22,18 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Colourfulness - version 2018-11-05
+// Colourfulness - version 2018-11-12
 // EXPECTS FULL RANGE GAMMA LIGHT
 
-uniform float colourfulness <
-	ui_type = "drag";
+#include "ReShadeUI.fxh"
+
+uniform float colourfulness < __UNIFORM_SLIDER_FLOAT1
 	ui_min = -1.0; ui_max = 2.0;
 	ui_tooltip = "Degree of colourfulness, 0 = neutral";
 	ui_step = 0.01;
 > = 0.4;
 
-uniform float lim_luma <
-	ui_type = "drag";
+uniform float lim_luma < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.1; ui_max = 1.0;
 	ui_tooltip = "Lower values allows for more change near clipping";
 	ui_step = 0.01;
@@ -65,11 +65,11 @@ uniform float backbuffer_bits <
 #endif
 //-------------------------------------------------------------------------------------------------
 
+#include "Reshade.fxh"
+
 #if (temporal_dither == 1)
 	uniform int rnd < source = "random"; min = 0; max = 1000; >;
 #endif
-
-#include "Reshade.fxh"
 
 // Sigmoid function, sign(v)*pow(pow(abs(v), -2) + pow(s, -2), 1.0/-2)
 #define soft_lim(v,s)  ( (v*s)*rcp(sqrt(s*s + v*v)) )
@@ -111,13 +111,13 @@ float3 Colourfulness(float4 vpos : SV_Position, float2 tex : TEXCOORD) : SV_Targ
 		float3 diffmax = diff_luma*min(min(poslim, neglim), 32) - diff_luma;
 
 		// Soft limit diff
-		c_diff = soft_lim( c_diff, max(wpmean(diffmax, rlc_diff, lim_luma), 1e-6) );
+		c_diff = soft_lim( c_diff, max(wpmean(diffmax, rlc_diff, lim_luma), 1e-7) );
 	}
 
 	if (enable_dither == true)
 	{
 		// Interleaved gradient noise by Jorge Jimenez
-		float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+		const float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
 		#if (temporal_dither == 1)
 			float xy_magic = (vpos.x + rnd)*magic.x + (vpos.y + rnd)*magic.y;
 		#else
